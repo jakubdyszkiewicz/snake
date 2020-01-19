@@ -4,25 +4,23 @@ import org.w3c.dom.events.KeyboardEvent
 import kotlin.browser.document
 import kotlin.browser.window
 
-
 val field = Field(width = 20, height = 20)
 
 fun main() {
-    GameView().draw(emptyGame(field))
+    GameView.draw(emptyGame(field))
 
     window.addEventListener("keydown", {e ->
         val event = e as KeyboardEvent
-        if (event.keyCode == 32) {
+        if (event.keyCode == 32) { // spacebar
             startNewGame()
         }
     })
 }
 
 fun startNewGame() {
-    val view = GameView()
     val game = Game(field)
 
-    val callback: (Event) -> Unit = { e ->
+    val movementCallback: (Event) -> Unit = { e ->
         val event = e as KeyboardEvent
         when (event.keyCode) {
             37 -> game.snake.left()
@@ -31,9 +29,9 @@ fun startNewGame() {
             40 -> game.snake.down()
         }
     }
-    window.addEventListener("keydown", callback)
+    window.addEventListener("keydown", movementCallback)
 
-    var intervalId = 0
+    var intervalId = 0 // is there a better way to cancel interval?
     val tick = {
         if (!game.over) {
             game.tick()
@@ -41,20 +39,18 @@ fun startNewGame() {
             if (game.score > highScore) {
                 HighScore.set(game.score)
             }
-            view.draw(game)
+            GameView.draw(game)
         } else {
-            view.draw(game)
-            window.removeEventListener("keydown", callback)
+            GameView.draw(game)
+            window.removeEventListener("keydown", movementCallback)
             window.clearInterval(intervalId)
         }
     }
     intervalId = window.setInterval(tick, 100)
 }
 
-class GameView {
-    companion object {
-        const val box = 32.0
-    }
+object GameView {
+    const val box = 32.0
 
     private val canvas = document.getElementById("game") as HTMLCanvasElement
     private val context = canvas.getContext("2d") as CanvasRenderingContext2D

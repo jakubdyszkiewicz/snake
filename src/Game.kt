@@ -3,7 +3,7 @@ enum class Direction {
 }
 
 data class Position(val x: Int, val y: Int) {
-    fun inDirection(direction: Direction): Position = when (direction) {
+    fun nextIn(direction: Direction): Position = when (direction) {
         Direction.LEFT -> Position(x - 1, y)
         Direction.RIGHT -> Position(x + 1, y)
         Direction.UP -> Position(x, y - 1)
@@ -28,7 +28,7 @@ class Snake(
             direction = dir
         }
 
-        val newPos = positions.last().inDirection(direction)
+        val newPos = positions.last().nextIn(direction)
         positions.add(newPos)
         val oldPos = positions.removeAt(0)
         lastPosition = oldPos
@@ -88,7 +88,7 @@ fun emptyGame(field: Field) = Game(field, Snake(direction = Direction.UP))
 class Game(
         val field: Field,
         val snake: Snake = Snake(
-                positions = mutableListOf(field.center(), field.center().inDirection(Direction.UP)),
+                positions = mutableListOf(field.center(), field.center().nextIn(Direction.UP)),
                 direction = Direction.UP
         )
 ) {
