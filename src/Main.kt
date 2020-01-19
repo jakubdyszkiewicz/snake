@@ -4,6 +4,7 @@ import org.w3c.dom.events.KeyboardEvent
 import kotlin.browser.document
 import kotlin.browser.window
 
+const val GAME_SPEED = 100
 val field = Field(width = 20, height = 20)
 
 fun main() {
@@ -20,16 +21,21 @@ fun main() {
     })
 }
 
+const val KEY_LEFT = 37
+const val KEY_UP = 38
+const val KEY_RIGHT = 39
+const val KEY_DOWN = 40
+
 fun startNewGame(): Game {
     val game = Game(field)
 
     val movementCallback: (Event) -> Unit = { e ->
         val event = e as KeyboardEvent
         when (event.keyCode) {
-            37 -> game.snake.left()
-            38 -> game.snake.up()
-            39 -> game.snake.right()
-            40 -> game.snake.down()
+            KEY_LEFT -> game.snake.left()
+            KEY_UP -> game.snake.up()
+            KEY_RIGHT -> game.snake.right()
+            KEY_DOWN -> game.snake.down()
         }
     }
     window.addEventListener("keydown", movementCallback)
@@ -49,7 +55,7 @@ fun startNewGame(): Game {
             window.clearInterval(intervalId)
         }
     }
-    intervalId = window.setInterval(tick, 100)
+    intervalId = window.setInterval(tick, GAME_SPEED)
     return game
 }
 
@@ -79,24 +85,20 @@ object GameView {
         val (fields1, fields2) = field.positions.partition { (it.x % 2 == 0 && it.y % 2 == 0) || (it.x % 2 == 1 && it.y % 2 == 1) }
 
         context.fillStyle = "#84C3FF"
-        fields1.forEach { pos -> context.fillRect(pos.x * box, pos.y * box, box, box) }
+        fields1.forEach(::drawBox)
 
         context.fillStyle = "#70B3FF"
-        fields2.forEach { pos -> context.fillRect(pos.x * box, pos.y * box, box, box) }
+        fields2.forEach(::drawBox)
     }
 
     private fun drawSnake(snake: Snake, gameOver: Boolean) {
         context.fillStyle = if (gameOver) "grey" else "green"
-        snake.getPositions().forEach { pos ->
-            context.fillRect(pos.x * box, pos.y * box, box, box)
-        }
+        snake.getPositions().forEach(::drawBox)
     }
 
     private fun drawFruit(fruit: Position?) {
-        fruit?.let {
-            context.fillStyle = "red"
-            context.fillRect(it.x * box, it.y * box, box, box)
-        }
+        context.fillStyle = "red"
+        fruit?.let(::drawBox)
     }
 
     private fun drawScore(score: Int) {
@@ -109,6 +111,10 @@ object GameView {
 
     private fun drawHint(game: Game) {
         hint.innerText = if (game.over) "Game over. Click spacebar to play again!" else "To play click spacebar!"
+    }
+
+    private fun drawBox(pos: Position) {
+        context.fillRect(pos.x * box, pos.y * box, box, box)
     }
 }
 

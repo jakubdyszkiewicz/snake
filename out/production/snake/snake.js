@@ -20,6 +20,7 @@ var snake = function (_, Kotlin) {
   var Collection = Kotlin.kotlin.collections.Collection;
   var throwCCE = Kotlin.throwCCE;
   var Unit = Kotlin.kotlin.Unit;
+  var getCallableRef = Kotlin.getCallableRef;
   var Kind_OBJECT = Kotlin.Kind.OBJECT;
   var toIntOrNull = Kotlin.kotlin.text.toIntOrNull_pdl1vz$;
   var Pair_init = Kotlin.kotlin.Pair;
@@ -316,6 +317,7 @@ var snake = function (_, Kotlin) {
     simpleName: 'Game',
     interfaces: []
   };
+  var GAME_SPEED;
   var field;
   function main$lambda(closure$currentGame) {
     return function (e) {
@@ -334,6 +336,10 @@ var snake = function (_, Kotlin) {
     var currentGame = {v: null};
     window.addEventListener('keydown', main$lambda(currentGame));
   }
+  var KEY_LEFT;
+  var KEY_UP;
+  var KEY_RIGHT;
+  var KEY_DOWN;
   function startNewGame$lambda(closure$game) {
     return function (e) {
       var tmp$;
@@ -423,33 +429,45 @@ var snake = function (_, Kotlin) {
     var fields1 = tmp$_0.component1()
     , fields2 = tmp$_0.component2();
     this.context_0.fillStyle = '#84C3FF';
+    var action = getCallableRef('drawBox', function ($receiver, pos) {
+      return $receiver.drawBox_0(pos), Unit;
+    }.bind(null, this));
     var tmp$_1;
     tmp$_1 = fields1.iterator();
     while (tmp$_1.hasNext()) {
       var element_0 = tmp$_1.next();
-      this.context_0.fillRect(element_0.x * this.box, element_0.y * this.box, this.box, this.box);
+      action(element_0);
     }
     this.context_0.fillStyle = '#70B3FF';
+    var action_0 = getCallableRef('drawBox', function ($receiver, pos) {
+      return $receiver.drawBox_0(pos), Unit;
+    }.bind(null, this));
     var tmp$_2;
     tmp$_2 = fields2.iterator();
     while (tmp$_2.hasNext()) {
       var element_1 = tmp$_2.next();
-      this.context_0.fillRect(element_1.x * this.box, element_1.y * this.box, this.box, this.box);
+      action_0(element_1);
     }
   };
   GameView.prototype.drawSnake_0 = function (snake, gameOver) {
     this.context_0.fillStyle = gameOver ? 'grey' : 'green';
+    var $receiver = snake.getPositions();
+    var action = getCallableRef('drawBox', function ($receiver, pos) {
+      return $receiver.drawBox_0(pos), Unit;
+    }.bind(null, this));
     var tmp$;
-    tmp$ = snake.getPositions().iterator();
+    tmp$ = $receiver.iterator();
     while (tmp$.hasNext()) {
       var element = tmp$.next();
-      this.context_0.fillRect(element.x * this.box, element.y * this.box, this.box, this.box);
+      action(element);
     }
   };
   GameView.prototype.drawFruit_0 = function (fruit) {
+    this.context_0.fillStyle = 'red';
     if (fruit != null) {
-      this.context_0.fillStyle = 'red';
-      this.context_0.fillRect(fruit.x * this.box, fruit.y * this.box, this.box, this.box);
+      getCallableRef('drawBox', function ($receiver, pos) {
+        return $receiver.drawBox_0(pos), Unit;
+      }.bind(null, this))(fruit);
     }
   };
   GameView.prototype.drawScore_0 = function (score) {
@@ -460,6 +478,9 @@ var snake = function (_, Kotlin) {
   };
   GameView.prototype.drawHint_0 = function (game) {
     this.hint_0.innerText = game.over ? 'Game over. Click spacebar to play again!' : 'To play click spacebar!';
+  };
+  GameView.prototype.drawBox_0 = function (pos) {
+    this.context_0.fillRect(pos.x * this.box, pos.y * this.box, this.box, this.box);
   };
   GameView.$metadata$ = {
     kind: Kind_OBJECT,
@@ -514,12 +535,37 @@ var snake = function (_, Kotlin) {
   _.Field = Field;
   _.emptyGame_14espm$ = emptyGame;
   _.Game = Game;
+  Object.defineProperty(_, 'GAME_SPEED', {
+    get: function () {
+      return GAME_SPEED;
+    }
+  });
   Object.defineProperty(_, 'field', {
     get: function () {
       return field;
     }
   });
   _.main = main;
+  Object.defineProperty(_, 'KEY_LEFT', {
+    get: function () {
+      return KEY_LEFT;
+    }
+  });
+  Object.defineProperty(_, 'KEY_UP', {
+    get: function () {
+      return KEY_UP;
+    }
+  });
+  Object.defineProperty(_, 'KEY_RIGHT', {
+    get: function () {
+      return KEY_RIGHT;
+    }
+  });
+  Object.defineProperty(_, 'KEY_DOWN', {
+    get: function () {
+      return KEY_DOWN;
+    }
+  });
   _.startNewGame = startNewGame;
   Object.defineProperty(_, 'GameView', {
     get: GameView_getInstance
@@ -527,7 +573,12 @@ var snake = function (_, Kotlin) {
   Object.defineProperty(_, 'HighScore', {
     get: HighScore_getInstance
   });
+  GAME_SPEED = 100;
   field = new Field(20, 20);
+  KEY_LEFT = 37;
+  KEY_UP = 38;
+  KEY_RIGHT = 39;
+  KEY_DOWN = 40;
   main();
   Kotlin.defineModule('snake', _);
   return _;
