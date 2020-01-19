@@ -83,6 +83,22 @@ data class Field(val width: Int, val height: Int) {
     fun center() = Position(x = width / 2, y = height / 2)
 }
 
+
+class TimedItem(val position: Position) {
+    companion object {
+        const val INTERVAL_TICKS = 150
+        const val ALIVE_TICKS = 40
+    }
+    private var aliveTime = ALIVE_TICKS
+
+    fun tick() {
+        aliveTime--
+    }
+
+    fun gone(): Boolean = aliveTime <= 0
+    fun ticksRemaining(): Int = aliveTime
+}
+
 fun emptyGame(field: Field) = Game(field, Snake(direction = Direction.UP))
 
 class Game(
@@ -98,14 +114,28 @@ class Game(
     var score = 0
         private set
 
+    var ticksToTimedItem = TimedItem.INTERVAL_TICKS
+    var timedItem: TimedItem? = null
+
     fun tick() {
         snake.move()
+        handleGameOver()
+        if (over) {
+            return
+        }
+        handleFruit()
+        handleTimedItem()
+    }
+
+    private fun handleGameOver() {
         if (isSnakeColliding()) {
             snake.moveBack()
             over = true
-            return
         }
-        if (isSnakeEatingFruit()) {
+    }
+
+    private fun handleFruit() {
+        if (isSnakeEating(fruit)) {
             snake.grow()
             fruit = null
             score++
@@ -115,7 +145,27 @@ class Game(
         }
     }
 
-    private fun isSnakeEatingFruit(): Boolean = fruit?.let { snake.getPositions().contains(it) } ?: false
+    private fun handleTimedItem() {
+        if (timedItem?.gone() == true) {
+            timedItem = null
+            ticksToTimedItem = TimedItem.INTERVAL_TICKS
+        }
+        if (isSnakeEating(timedItem?.position)) {
+            snake.grow()
+            score += timedItem!!.ticksRemaining() / 2
+            timedItem = null
+            ticksToTimedItem = TimedItem.INTERVAL_TICKS
+        }
+        if (ticksToTimedItem == 0) {
+            nonOccupiedPosition()?.let {
+                timedItem = TimedItem(it)
+            }
+        }
+        timedItem?.tick()
+        ticksToTimedItem--
+    }
+
+    private fun isSnakeEating(item: Position?): Boolean = item?.let { snake.getPositions().contains(it) } ?: false
 
     private fun isSnakeColliding(): Boolean {
         val fieldCollision = snake.getPositions().any { pos -> pos.x == 0 || pos.x > field.width || pos.y == 0 || pos.y > field.height }

@@ -6,8 +6,11 @@ var snake = function (_, Kotlin) {
   var Enum = Kotlin.kotlin.Enum;
   var Kind_CLASS = Kotlin.Kind.CLASS;
   var throwISE = Kotlin.throwISE;
+  var Unit = Kotlin.kotlin.Unit;
   var last = Kotlin.kotlin.collections.last_2p1efm$;
   var IntRange = Kotlin.kotlin.ranges.IntRange;
+  var Kind_OBJECT = Kotlin.Kind.OBJECT;
+  var ensureNotNull = Kotlin.ensureNotNull;
   var toSet = Kotlin.kotlin.collections.toSet_7wnvza$;
   var shuffled = Kotlin.kotlin.collections.shuffled_7wnvza$;
   var minus = Kotlin.kotlin.collections.minus_q4559j$;
@@ -19,9 +22,7 @@ var snake = function (_, Kotlin) {
   var ArrayList_init_0 = Kotlin.kotlin.collections.ArrayList_init_ww73n8$;
   var Collection = Kotlin.kotlin.collections.Collection;
   var throwCCE = Kotlin.throwCCE;
-  var Unit = Kotlin.kotlin.Unit;
   var getCallableRef = Kotlin.getCallableRef;
-  var Kind_OBJECT = Kotlin.Kind.OBJECT;
   var toIntOrNull = Kotlin.kotlin.text.toIntOrNull_pdl1vz$;
   var Pair_init = Kotlin.kotlin.Pair;
   Direction.prototype = Object.create(Enum.prototype);
@@ -237,6 +238,42 @@ var snake = function (_, Kotlin) {
   Field.prototype.equals = function (other) {
     return this === other || (other !== null && (typeof other === 'object' && (Object.getPrototypeOf(this) === Object.getPrototypeOf(other) && (Kotlin.equals(this.width, other.width) && Kotlin.equals(this.height, other.height)))));
   };
+  function TimedItem(position) {
+    TimedItem$Companion_getInstance();
+    this.position = position;
+    this.aliveTime_0 = 40;
+  }
+  function TimedItem$Companion() {
+    TimedItem$Companion_instance = this;
+    this.INTERVAL_TICKS = 150;
+    this.ALIVE_TICKS = 40;
+  }
+  TimedItem$Companion.$metadata$ = {
+    kind: Kind_OBJECT,
+    simpleName: 'Companion',
+    interfaces: []
+  };
+  var TimedItem$Companion_instance = null;
+  function TimedItem$Companion_getInstance() {
+    if (TimedItem$Companion_instance === null) {
+      new TimedItem$Companion();
+    }
+    return TimedItem$Companion_instance;
+  }
+  TimedItem.prototype.tick = function () {
+    this.aliveTime_0 = this.aliveTime_0 - 1 | 0;
+  };
+  TimedItem.prototype.gone = function () {
+    return this.aliveTime_0 <= 0;
+  };
+  TimedItem.prototype.ticksRemaining = function () {
+    return this.aliveTime_0;
+  };
+  TimedItem.$metadata$ = {
+    kind: Kind_CLASS,
+    simpleName: 'TimedItem',
+    interfaces: []
+  };
   function emptyGame(field) {
     return new Game(field, new Snake(void 0, Direction$UP_getInstance()));
   }
@@ -248,6 +285,8 @@ var snake = function (_, Kotlin) {
     this.fruit = null;
     this.over_pr8q2y$_0 = false;
     this.score_iq6o1w$_0 = 0;
+    this.ticksToTimedItem = 150;
+    this.timedItem = null;
   }
   Object.defineProperty(Game.prototype, 'over', {
     get: function () {
@@ -267,12 +306,21 @@ var snake = function (_, Kotlin) {
   });
   Game.prototype.tick = function () {
     this.snake.move();
+    this.handleGameOver_0();
+    if (this.over) {
+      return;
+    }
+    this.handleFruit_0();
+    this.handleTimedItem_0();
+  };
+  Game.prototype.handleGameOver_0 = function () {
     if (this.isSnakeColliding_0()) {
       this.snake.moveBack();
       this.over = true;
-      return;
     }
-    if (this.isSnakeEatingFruit_0()) {
+  };
+  Game.prototype.handleFruit_0 = function () {
+    if (this.isSnakeEating_0(this.fruit)) {
       this.snake.grow();
       this.fruit = null;
       this.score = this.score + 1 | 0;
@@ -281,9 +329,29 @@ var snake = function (_, Kotlin) {
       this.fruit = this.nonOccupiedPosition_0();
     }
   };
-  Game.prototype.isSnakeEatingFruit_0 = function () {
-    var tmp$, tmp$_0;
-    return (tmp$_0 = (tmp$ = this.fruit) != null ? this.snake.getPositions().contains_11rb$(tmp$) : null) != null ? tmp$_0 : false;
+  Game.prototype.handleTimedItem_0 = function () {
+    var tmp$, tmp$_0, tmp$_1, tmp$_2;
+    if (((tmp$ = this.timedItem) != null ? tmp$.gone() : null) === true) {
+      this.timedItem = null;
+      this.ticksToTimedItem = 150;
+    }
+    if (this.isSnakeEating_0((tmp$_0 = this.timedItem) != null ? tmp$_0.position : null)) {
+      this.snake.grow();
+      this.score = this.score + (ensureNotNull(this.timedItem).ticksRemaining() / 2 | 0) | 0;
+      this.timedItem = null;
+      this.ticksToTimedItem = 150;
+    }
+    if (this.ticksToTimedItem === 0) {
+      if ((tmp$_1 = this.nonOccupiedPosition_0()) != null) {
+        this.timedItem = new TimedItem(tmp$_1);
+      }
+    }
+    (tmp$_2 = this.timedItem) != null ? (tmp$_2.tick(), Unit) : null;
+    this.ticksToTimedItem = this.ticksToTimedItem - 1 | 0;
+  };
+  Game.prototype.isSnakeEating_0 = function (item) {
+    var tmp$;
+    return (tmp$ = item != null ? this.snake.getPositions().contains_11rb$(item) : null) != null ? tmp$ : false;
   };
   Game.prototype.isSnakeColliding_0 = function () {
     var $receiver = this.snake.getPositions();
@@ -404,6 +472,7 @@ var snake = function (_, Kotlin) {
     this.drawField_0(game.field);
     this.drawSnake_0(game.snake, game.over);
     this.drawFruit_0(game.fruit);
+    this.drawTimedItem_0(game.timedItem);
     this.drawScore_0(game.score);
     this.drawHighScore_0((tmp$ = HighScore_getInstance().get()) != null ? tmp$ : 0);
     this.drawHint_0(game);
@@ -470,6 +539,13 @@ var snake = function (_, Kotlin) {
       }.bind(null, this))(fruit);
     }
   };
+  GameView.prototype.drawTimedItem_0 = function (timedItem) {
+    this.context_0.fillStyle = 'yellow';
+    if (timedItem != null) {
+      this.drawBox_0(timedItem.position);
+      this.drawText_0(timedItem.ticksRemaining().toString(), timedItem.position);
+    }
+  };
   GameView.prototype.drawScore_0 = function (score) {
     this.scoreSpan_0.innerText = score.toString();
   };
@@ -478,6 +554,13 @@ var snake = function (_, Kotlin) {
   };
   GameView.prototype.drawHint_0 = function (game) {
     this.hint_0.innerText = game.over ? 'Game over. Click spacebar to play again!' : 'To play click spacebar!';
+  };
+  GameView.prototype.drawText_0 = function (text, pos) {
+    this.context_0.fillStyle = 'black';
+    this.context_0.font = '16px Arial';
+    this.context_0.textAlign = 'center';
+    this.context_0.textBaseline = 'middle';
+    this.context_0.fillText(text, pos.x * this.box + this.box / 2, pos.y * this.box + this.box / 2, this.box);
   };
   GameView.prototype.drawBox_0 = function (pos) {
     this.context_0.fillRect(pos.x * this.box, pos.y * this.box, this.box, this.box);
@@ -533,6 +616,10 @@ var snake = function (_, Kotlin) {
   _.Position = Position;
   _.Snake = Snake;
   _.Field = Field;
+  Object.defineProperty(TimedItem, 'Companion', {
+    get: TimedItem$Companion_getInstance
+  });
+  _.TimedItem = TimedItem;
   _.emptyGame_14espm$ = emptyGame;
   _.Game = Game;
   Object.defineProperty(_, 'GAME_SPEED', {

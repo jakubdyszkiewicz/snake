@@ -72,6 +72,7 @@ object GameView {
         drawField(game.field)
         drawSnake(game.snake, game.over)
         drawFruit(game.fruit)
+        drawTimedItem(game.timedItem)
         drawScore(game.score)
         drawHighScore(HighScore.get() ?: 0)
         drawHint(game)
@@ -101,6 +102,14 @@ object GameView {
         fruit?.let(::drawBox)
     }
 
+    private fun drawTimedItem(timedItem: TimedItem?) {
+        context.fillStyle = "yellow"
+        timedItem?.let {
+            drawBox(it.position)
+            drawText(it.ticksRemaining().toString(), it.position)
+        }
+    }
+
     private fun drawScore(score: Int) {
         scoreSpan.innerText = score.toString()
     }
@@ -111,6 +120,14 @@ object GameView {
 
     private fun drawHint(game: Game) {
         hint.innerText = if (game.over) "Game over. Click spacebar to play again!" else "To play click spacebar!"
+    }
+
+    private fun drawText(text: String, pos: Position) {
+        context.fillStyle = "black"
+        context.font = "16px Arial"
+        context.textAlign = CanvasTextAlign.CENTER
+        context.textBaseline = CanvasTextBaseline.MIDDLE
+        context.fillText(text, pos.x * box + box/2, pos.y * box + box/2, box)
     }
 
     private fun drawBox(pos: Position) {
