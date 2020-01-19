@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Console Output</title>
+</head>
+<style>
+  h1 {
+    font-size: 50px;
+    display: block;
+    margin: 0 auto;
+    padding: 10px;
+  }
+
+  body {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    background: #e8f5ff
+  }
+
+  #game-container {
+    width: 100%;
+    text-align: center;
+  }
+
+  #game-over {
+    display: none;
+  }
+  </style>
+<body>
+
+<div id="game-container">
+    <h1>Score: <span id="score">0</span></h1>
+    <h3>High Score: <span id="high-score">0</span></h3>
+    <h3 id="hint">To play click spacebar!</h3>
+    <canvas id="game" width="704" height="704"></canvas>
+</div>
+
+<script type="text/javascript" src="out/production/snake/lib/kotlin.js"></script>
+<script type="text/javascript" src="out/production/snake/snake.js"></script>
+</body>
+</html>
