@@ -9,15 +9,18 @@ val field = Field(width = 20, height = 20)
 fun main() {
     GameView.draw(emptyGame(field))
 
+    var currentGame: Game? = null
     window.addEventListener("keydown", {e ->
         val event = e as KeyboardEvent
         if (event.keyCode == 32) { // spacebar
-            startNewGame()
+            if (currentGame?.over != false) {
+                currentGame = startNewGame()
+            }
         }
     })
 }
 
-fun startNewGame() {
+fun startNewGame(): Game {
     val game = Game(field)
 
     val movementCallback: (Event) -> Unit = { e ->
@@ -47,6 +50,7 @@ fun startNewGame() {
         }
     }
     intervalId = window.setInterval(tick, 100)
+    return game
 }
 
 object GameView {

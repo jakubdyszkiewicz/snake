@@ -85,7 +85,7 @@ var snake = function (_, Kotlin) {
     this.x = x;
     this.y = y;
   }
-  Position.prototype.inDirection_h80bq7$ = function (direction) {
+  Position.prototype.nextIn_h80bq7$ = function (direction) {
     switch (direction.name) {
       case 'LEFT':
         return new Position(this.x - 1 | 0, this.y);
@@ -141,7 +141,7 @@ var snake = function (_, Kotlin) {
     if ((tmp$ = this.directionChange_0) != null) {
       this.direction_0 = tmp$;
     }
-    var newPos = last(this.positions_0).inDirection_h80bq7$(this.direction_0);
+    var newPos = last(this.positions_0).nextIn_h80bq7$(this.direction_0);
     this.positions_0.add_11rb$(newPos);
     var oldPos = this.positions_0.removeAt_za3lpa$(0);
     this.lastPosition_0 = oldPos;
@@ -241,7 +241,7 @@ var snake = function (_, Kotlin) {
   }
   function Game(field, snake) {
     if (snake === void 0)
-      snake = new Snake(mutableListOf([field.center(), field.center().inDirection_h80bq7$(Direction$UP_getInstance())]), Direction$UP_getInstance());
+      snake = new Snake(mutableListOf([field.center(), field.center().nextIn_h80bq7$(Direction$UP_getInstance())]), Direction$UP_getInstance());
     this.field = field;
     this.snake = snake;
     this.fruit = null;
@@ -317,17 +317,22 @@ var snake = function (_, Kotlin) {
     interfaces: []
   };
   var field;
-  function main$lambda(e) {
-    var tmp$;
-    var event = Kotlin.isType(tmp$ = e, KeyboardEvent) ? tmp$ : throwCCE();
-    if (event.keyCode === 32) {
-      startNewGame();
-    }
-    return Unit;
+  function main$lambda(closure$currentGame) {
+    return function (e) {
+      var tmp$, tmp$_0;
+      var event = Kotlin.isType(tmp$ = e, KeyboardEvent) ? tmp$ : throwCCE();
+      if (event.keyCode === 32) {
+        if (((tmp$_0 = closure$currentGame.v) != null ? tmp$_0.over : null) !== false) {
+          closure$currentGame.v = startNewGame();
+        }
+      }
+      return Unit;
+    };
   }
   function main() {
-    (new GameView()).draw_1beoi$(emptyGame(field));
-    window.addEventListener('keydown', main$lambda);
+    GameView_getInstance().draw_1beoi$(emptyGame(field));
+    var currentGame = {v: null};
+    window.addEventListener('keydown', main$lambda(currentGame));
   }
   function startNewGame$lambda(closure$game) {
     return function (e) {
@@ -350,7 +355,7 @@ var snake = function (_, Kotlin) {
       return Unit;
     };
   }
-  function startNewGame$lambda_0(closure$game, closure$view, closure$callback, closure$intervalId) {
+  function startNewGame$lambda_0(closure$game, closure$movementCallback, closure$intervalId) {
     return function () {
       var tmp$;
       if (!closure$game.over) {
@@ -359,49 +364,34 @@ var snake = function (_, Kotlin) {
         if (closure$game.score > highScore) {
           HighScore_getInstance().set_za3lpa$(closure$game.score);
         }
-        closure$view.draw_1beoi$(closure$game);
+        GameView_getInstance().draw_1beoi$(closure$game);
       }
        else {
-        closure$view.draw_1beoi$(closure$game);
-        window.removeEventListener('keydown', closure$callback);
+        GameView_getInstance().draw_1beoi$(closure$game);
+        window.removeEventListener('keydown', closure$movementCallback);
         window.clearInterval(closure$intervalId.v);
       }
       return Unit;
     };
   }
   function startNewGame() {
-    var view = new GameView();
     var game = new Game(field);
-    var callback = startNewGame$lambda(game);
-    window.addEventListener('keydown', callback);
+    var movementCallback = startNewGame$lambda(game);
+    window.addEventListener('keydown', movementCallback);
     var intervalId = {v: 0};
-    var tick = startNewGame$lambda_0(game, view, callback, intervalId);
+    var tick = startNewGame$lambda_0(game, movementCallback, intervalId);
     intervalId.v = window.setInterval(tick, 100);
+    return game;
   }
   function GameView() {
-    GameView$Companion_getInstance();
+    GameView_instance = this;
+    this.box = 32.0;
     var tmp$, tmp$_0, tmp$_1, tmp$_2, tmp$_3;
     this.canvas_0 = Kotlin.isType(tmp$ = document.getElementById('game'), HTMLCanvasElement) ? tmp$ : throwCCE();
     this.context_0 = Kotlin.isType(tmp$_0 = this.canvas_0.getContext('2d'), CanvasRenderingContext2D) ? tmp$_0 : throwCCE();
     this.scoreSpan_0 = Kotlin.isType(tmp$_1 = document.getElementById('score'), HTMLSpanElement) ? tmp$_1 : throwCCE();
     this.highScoreSpan_0 = Kotlin.isType(tmp$_2 = document.getElementById('high-score'), HTMLSpanElement) ? tmp$_2 : throwCCE();
     this.hint_0 = Kotlin.isType(tmp$_3 = document.getElementById('hint'), HTMLHeadingElement) ? tmp$_3 : throwCCE();
-  }
-  function GameView$Companion() {
-    GameView$Companion_instance = this;
-    this.box = 32.0;
-  }
-  GameView$Companion.$metadata$ = {
-    kind: Kind_OBJECT,
-    simpleName: 'Companion',
-    interfaces: []
-  };
-  var GameView$Companion_instance = null;
-  function GameView$Companion_getInstance() {
-    if (GameView$Companion_instance === null) {
-      new GameView$Companion();
-    }
-    return GameView$Companion_instance;
   }
   GameView.prototype.draw_1beoi$ = function (game) {
     var tmp$;
@@ -414,7 +404,7 @@ var snake = function (_, Kotlin) {
   };
   GameView.prototype.drawField_0 = function (field) {
     this.context_0.fillStyle = '#005FFF';
-    this.context_0.fillRect(0.0, 0.0, GameView$Companion_getInstance().box * (field.width + 2 | 0), GameView$Companion_getInstance().box * (field.height + 2 | 0));
+    this.context_0.fillRect(0.0, 0.0, this.box * (field.width + 2 | 0), this.box * (field.height + 2 | 0));
     var $receiver = field.positions;
     var tmp$;
     var first = ArrayList_init();
@@ -437,14 +427,14 @@ var snake = function (_, Kotlin) {
     tmp$_1 = fields1.iterator();
     while (tmp$_1.hasNext()) {
       var element_0 = tmp$_1.next();
-      this.context_0.fillRect(element_0.x * GameView$Companion_getInstance().box, element_0.y * GameView$Companion_getInstance().box, GameView$Companion_getInstance().box, GameView$Companion_getInstance().box);
+      this.context_0.fillRect(element_0.x * this.box, element_0.y * this.box, this.box, this.box);
     }
     this.context_0.fillStyle = '#70B3FF';
     var tmp$_2;
     tmp$_2 = fields2.iterator();
     while (tmp$_2.hasNext()) {
       var element_1 = tmp$_2.next();
-      this.context_0.fillRect(element_1.x * GameView$Companion_getInstance().box, element_1.y * GameView$Companion_getInstance().box, GameView$Companion_getInstance().box, GameView$Companion_getInstance().box);
+      this.context_0.fillRect(element_1.x * this.box, element_1.y * this.box, this.box, this.box);
     }
   };
   GameView.prototype.drawSnake_0 = function (snake, gameOver) {
@@ -453,13 +443,13 @@ var snake = function (_, Kotlin) {
     tmp$ = snake.getPositions().iterator();
     while (tmp$.hasNext()) {
       var element = tmp$.next();
-      this.context_0.fillRect(element.x * GameView$Companion_getInstance().box, element.y * GameView$Companion_getInstance().box, GameView$Companion_getInstance().box, GameView$Companion_getInstance().box);
+      this.context_0.fillRect(element.x * this.box, element.y * this.box, this.box, this.box);
     }
   };
   GameView.prototype.drawFruit_0 = function (fruit) {
     if (fruit != null) {
       this.context_0.fillStyle = 'red';
-      this.context_0.fillRect(fruit.x * GameView$Companion_getInstance().box, fruit.y * GameView$Companion_getInstance().box, GameView$Companion_getInstance().box, GameView$Companion_getInstance().box);
+      this.context_0.fillRect(fruit.x * this.box, fruit.y * this.box, this.box, this.box);
     }
   };
   GameView.prototype.drawScore_0 = function (score) {
@@ -472,10 +462,17 @@ var snake = function (_, Kotlin) {
     this.hint_0.innerText = game.over ? 'Game over. Click spacebar to play again!' : 'To play click spacebar!';
   };
   GameView.$metadata$ = {
-    kind: Kind_CLASS,
+    kind: Kind_OBJECT,
     simpleName: 'GameView',
     interfaces: []
   };
+  var GameView_instance = null;
+  function GameView_getInstance() {
+    if (GameView_instance === null) {
+      new GameView();
+    }
+    return GameView_instance;
+  }
   function HighScore() {
     HighScore_instance = this;
     this.key_0 = 'highScore';
@@ -524,10 +521,9 @@ var snake = function (_, Kotlin) {
   });
   _.main = main;
   _.startNewGame = startNewGame;
-  Object.defineProperty(GameView, 'Companion', {
-    get: GameView$Companion_getInstance
+  Object.defineProperty(_, 'GameView', {
+    get: GameView_getInstance
   });
-  _.GameView = GameView;
   Object.defineProperty(_, 'HighScore', {
     get: HighScore_getInstance
   });
